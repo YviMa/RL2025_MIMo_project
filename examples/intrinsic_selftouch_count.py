@@ -65,9 +65,10 @@ class Wrapper(gym.Wrapper):
         obs['touch']=obs_touch
         
         prev_habituation=obs['habituation']
-        new_habituation[obs_touch]=prev_habituation[obs_touch]-
-        new_habituation[obs_touch]=
-        
+        new_habituation=np.zeros(np.shape(prev_habituation))
+        new_habituation[obs_touch==1]=prev_habituation[obs_touch==1]-self.hab(prev_habituation[obs_touch==1]) #habituation where there is touch
+        new_habituation[obs_touch==0]=prev_habituation[obs_touch==0]-self.dehab(prev_habituation[obs_touch==0])  #dehabituation where there is no touch
+        obs['habituation']=new_habituation
              
         #compute reward from redefined observation
         intrinsic_reward = self.compute_intrinsic_reward(obs)
@@ -84,13 +85,22 @@ class Wrapper(gym.Wrapper):
 
         return obs, info
     
-    def hab(y):
-        # performs dehabituation step
-        # habituation 
-        new_hab=y-
-    
-    def dehab(y):
+    def hab(self,y):
         # performs habituation step
+        # habituation e^{-x/tau} => grad -1/tau => ln(y)=-x/tau => -tau*ln(y)=x
+        # y= -1/tau*e^(-xt/tau) => ln(-tau*y)
+        x=-self.tau_h*np.log(y)
+        grad=-1/self.tau_h*e^(-x/self.tau_h)
+        new_hab=y+grad
+        return new_hab
+    
+    def dehab(self,y):
+        # performs dehabituation step
+        x=-self.tau_d*np.log(-y) #1-e^{-x/\tau_d}=y => ln(-y)*(-tau)=x 
+        grad=1/self.tau_d*e^(-x/self.tau_h) #1/tau
+        new_hab=y+grad
+        return new_hab
+
     
 
 
