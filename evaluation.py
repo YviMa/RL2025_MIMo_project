@@ -13,6 +13,8 @@ import mimoEnv.utils as env_utils
 import babybench.utils as bb_utils
 import babybench.eval as bb_eval
 
+from examples.intrinsic_selftouch_count import Wrapper
+
 def main():
     
     parser = argparse.ArgumentParser()
@@ -30,6 +32,7 @@ def main():
         config = yaml.safe_load(f)
 
     env = bb_utils.make_env(config, training=False)
+    env = Wrapper(env)
     env.reset()
 
     # Initialize evaluation object
