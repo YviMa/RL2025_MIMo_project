@@ -23,6 +23,7 @@ class Wrapper(gym.Wrapper):
     def __init__(self, env):
         super().__init__(env)
         
+        # Array of body part names.
         self.body_names=self.env.touch_params['scales'].keys()
         # redefine obs space
         old_dict=self.env.observation_space.spaces
@@ -32,6 +33,9 @@ class Wrapper(gym.Wrapper):
         new_dict['touch']=gym.spaces.Box(-np.inf, np.inf, shape=(len(self.body_names),), dtype=np.float32)
         new_dict['habituation']=gym.spaces.Box(-np.inf, np.inf, shape=(len(self.body_names),), dtype=np.float32)
         self.observation_space = gym.spaces.Dict(new_dict)
+     
+        # habituation time constants. reward after touch decays with function -exp(t/tau_h) and
+        # recovers with function 1-exp(t/tau_d).
         self.tau_h=1
         self.tau_d=1
 
@@ -48,13 +52,17 @@ class Wrapper(gym.Wrapper):
         obs, extrinsic_reward, terminated, truncated, info = self.env.step(action)
         # redefine obs
         touch_setup=self.env.touch
+        # dictionary that has keys id of the body part and values array of the sensor outputs.
         sensor_outputs=touch_setup.sensor_outputs
 
+        # dictionary that assigns each body part name the id of that body part.
         body_dict={}
         for body_name in self.body_names:
             body_dict.update({body_name:self.env.model.body(body_name).id})
 
-
+        # Array of sensor observations. Value is True if that body part is touched and else False.
+        # We check if a body part is touched by checking if any sensor of that body part is active
+        # by a threshold.
         obs_touch = np.zeros(len(self.body_names))
         for idx, body_part in enumerate(self.body_names):
             obs_touch[idx]=np.any(sensor_outputs[body_dict[body_part]]>10**(-6)) 
@@ -85,15 +93,15 @@ class Wrapper(gym.Wrapper):
         # habituation e^{-x/tau} => grad -1/tau => ln(y)=-x/tau => -tau*ln(y)=x
         # y= -1/tau*e^(-xt/tau) => ln(-tau*y)
         x=-self.tau_h*np.log(y)
-        grad=-1/self.tau_h*np.exp((-x/self.tau_h))
-        new_hab=y+grad
+
+        # TODO adjust x+1 to the time step that we want to take?
+        new_hab=np.exp(-(x+1)/self.tau_h)
         return new_hab
     
     def dehab(self,y):
         # performs dehabituation step
         x=-self.tau_d*np.log(-y) #1-e^{-x/\tau_d}=y => ln(-y)*(-tau)=x 
-        grad=1/self.tau_d*np.exp((-x/self.tau_h)) #1/tau
-        new_hab=y+grad
+        new_hab=1-np.exp(-(x+1)/self.tau_d)
         return new_hab
 
     
