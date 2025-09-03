@@ -44,7 +44,7 @@ class Wrapper(gym.Wrapper):
     def compute_intrinsic_reward(self, obs):
         # Use 'obs['touch']' as mask to filter out body parts that are being touched. The reward is
         # then the sum of habituations over touched body parts.
-        return np.sum(self.habituation[obs['touch']])
+        return np.sum(self.habituation[obs['touch'].astype(dtype=np.bool]))
 
     def step(self, action):
         obs, extrinsic_reward, terminated, truncated, info = self.env.step(action)
