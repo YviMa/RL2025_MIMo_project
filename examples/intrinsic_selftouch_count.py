@@ -34,19 +34,21 @@ class Wrapper(gym.Wrapper):
         #new_dict['habituation']=gym.spaces.Box(-np.inf, np.inf, shape=(len(self.body_names),), dtype=np.float32)
         new_dict.update({'habituation':gym.spaces.Box(-np.inf, np.inf, shape=(len(self.body_names),), dtype=np.float32)})
         self.observation_space = gym.spaces.Dict(new_dict)
-     
+        self.habituation = np.ones(len(self.body_names))
         # habituation time constants. reward after touch decays with function -exp(t/tau_h) and
         # recovers with function 1-exp(t/tau_d).
+        
         self.tau_h=1
         self.tau_d=1
 
 
     def compute_intrinsic_reward(self, obs):
         #intrinsic_reward = np.sum(obs['touch'] > 1e-6) / len(obs['touch'])
-        intrinsic_reward=np.ones(len(obs['touch']))
-        intrinsic_reward[self.h_tracker!=0]=self.reward_tracker[self.h_tracker!=0]-1/self.tau_h*np.exp(-1/self.tau_h)
-        intrinsic_reward[self.d_tracker==0]=self.reward_tracker[self.h_tracker==0]+1/self.tau_d*np.exp(-1/self.tau_d)
-        self.reward_tracker=intrinsic_reward
+        intrinsic_reward=0
+        #intrinsic_reward=np.ones(len(obs['touch']))
+        #intrinsic_reward[self.h_tracker!=0]=self.reward_tracker[self.h_tracker!=0]-1/self.tau_h*np.exp(-1/self.tau_h)
+        #intrinsic_reward[self.d_tracker==0]=self.reward_tracker[self.h_tracker==0]+1/self.tau_d*np.exp(-1/self.tau_d)
+        #self.reward_tracker=intrinsic_reward
         return intrinsic_reward
 
     def step(self, action):
@@ -70,16 +72,17 @@ class Wrapper(gym.Wrapper):
 
         obs['touch']=obs_touch
         
-        prev_habituation=obs['habituation']
+        prev_habituation=self.habituation
+ 
         new_habituation=np.zeros(np.shape(prev_habituation))
         new_habituation[obs_touch==1]=self.hab(prev_habituation[obs_touch==1]) #habituation where there is touch
         new_habituation[obs_touch==0]=self.dehab(prev_habituation[obs_touch==0])  #dehabituation where there is no touch
-        obs['habituation']=new_habituation
+        obs.update({'habituation':new_habituation})
              
         #compute reward from redefined observation
         intrinsic_reward = self.compute_intrinsic_reward(obs)
         total_reward = intrinsic_reward + extrinsic_reward # extrinsic reward is always 0  
-
+        self.habituation=new_habituation
         return obs, total_reward, terminated, truncated, info
 
     def reset(self, **kwargs):
@@ -101,7 +104,7 @@ class Wrapper(gym.Wrapper):
     
     def dehab(self,y):
         # performs dehabituation step
-        x=-self.tau_d*np.log(-y) #1-e^{-x/\tau_d}=y => ln(-y)*(-tau)=x 
+        x=-self.tau_d*np.log(1-y) #1-e^{-x/\tau_d}=y => ln(-y)*(-tau)=x 
         new_hab=1-np.exp(-(x+1)/self.tau_d)
         return new_hab
 
