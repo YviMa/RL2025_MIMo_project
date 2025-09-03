@@ -31,7 +31,8 @@ class Wrapper(gym.Wrapper):
         #adding a new box with adjusted size
         #size is equal to the number of body parts 
         new_dict['touch']=gym.spaces.Box(-np.inf, np.inf, shape=(len(self.body_names),), dtype=np.float32)
-        new_dict['habituation']=gym.spaces.Box(-np.inf, np.inf, shape=(len(self.body_names),), dtype=np.float32)
+        #new_dict['habituation']=gym.spaces.Box(-np.inf, np.inf, shape=(len(self.body_names),), dtype=np.float32)
+        new_dict.update({'habituation':gym.spaces.Box(-np.inf, np.inf, shape=(len(self.body_names),), dtype=np.float32)})
         self.observation_space = gym.spaces.Dict(new_dict)
      
         # habituation time constants. reward after touch decays with function -exp(t/tau_h) and
