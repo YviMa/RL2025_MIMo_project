@@ -44,7 +44,7 @@ class Wrapper(gym.Wrapper):
 
     def compute_intrinsic_reward(self, obs):
         #intrinsic_reward = np.sum(obs['touch'] > 1e-6) / len(obs['touch'])
-        intrinsic_reward=0
+        intrinsic_reward=1
         #intrinsic_reward=np.ones(len(obs['touch']))
         #intrinsic_reward[self.h_tracker!=0]=self.reward_tracker[self.h_tracker!=0]-1/self.tau_h*np.exp(-1/self.tau_h)
         #intrinsic_reward[self.d_tracker==0]=self.reward_tracker[self.h_tracker==0]+1/self.tau_d*np.exp(-1/self.tau_d)
