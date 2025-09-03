@@ -45,7 +45,7 @@ class Wrapper(gym.Wrapper):
     def compute_intrinsic_reward(self, obs):
         # Use 'obs['touch']' as mask to filter out body parts that are being touched. The reward is
         # then the sum of habituations over touched body parts.
-        return np.sum(self.habituation[obs['touch']])
+        return 0#np.sum(self.habituation[obs['touch']])
 
     def step(self, action):
         obs, extrinsic_reward, terminated, truncated, info = self.env.step(action)
@@ -92,6 +92,7 @@ class Wrapper(gym.Wrapper):
         # performs habituation step
         # habituation e^{-x/tau} => grad -1/tau => ln(y)=-x/tau => -tau*ln(y)=x
         # y= -1/tau*e^(-xt/tau) => ln(-tau*y)
+        y[y==0]=10**(-6)
         x=-self.tau_h*np.log(y)
 
         # TODO adjust x+1 to the time step that we want to take?
@@ -100,6 +101,8 @@ class Wrapper(gym.Wrapper):
     
     def dehab(self,y):
         # performs dehabituation step
+        # TODO implement 
+        y[y==1]=0.99999999
         x=-self.tau_d*np.log(1-y) #1-e^{-x/\tau_d}=y => ln(-y)*(-tau)=x 
         new_hab=1-np.exp(-(x+1)/self.tau_d)
         return new_hab
