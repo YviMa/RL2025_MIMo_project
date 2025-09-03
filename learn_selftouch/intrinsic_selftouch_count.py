@@ -44,12 +44,12 @@ class Wrapper(gym.Wrapper):
 
     def compute_intrinsic_reward(self, obs):
         #intrinsic_reward = np.sum(obs['touch'] > 1e-6) / len(obs['touch'])
-        intrinsic_reward=1
-        #intrinsic_reward=np.ones(len(obs['touch']))
-        #intrinsic_reward[self.h_tracker!=0]=self.reward_tracker[self.h_tracker!=0]-1/self.tau_h*np.exp(-1/self.tau_h)
-        #intrinsic_reward[self.d_tracker==0]=self.reward_tracker[self.h_tracker==0]+1/self.tau_d*np.exp(-1/self.tau_d)
-        #self.reward_tracker=intrinsic_reward
-        return intrinsic_reward
+        # Use 'obs['touch']' as mask to filter out body parts that are being touched. 
+        # Use metabolic cost as a penalty, clipped at 0.1
+        # The reward is then the sum of habituations over touched body parts - penalty
+        metabolic_cost = self.env.actuation_model.cost()
+        metabolic_cost = np.clip(metabolic_cost, 0, 0.1)
+        return np.sum(self.habituation[obs['touch'].astype(bool)]) - metabolic_cost
 
     def step(self, action):
         obs, extrinsic_reward, terminated, truncated, info = self.env.step(action)
