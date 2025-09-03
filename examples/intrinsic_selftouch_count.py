@@ -23,6 +23,7 @@ class Wrapper(gym.Wrapper):
     def __init__(self, env):
         super().__init__(env)
         
+        # Array of body part names.
         self.body_names=self.env.touch_params['scales'].keys()
         print("body_names",len(self.body_names))
         # redefine obs space
@@ -35,6 +36,8 @@ class Wrapper(gym.Wrapper):
         self.observation_space = gym.spaces.Dict(new_dict)
         self.h_tracker=np.zeros(len(self.body_names))
         self.reward_tracker=np.ones(len(self.body_names))
+        # habituation time constants. reward after touch decays with function -exp(t/tau_h) and
+        # recovers with function 1-exp(t/tau_d).
         self.tau_h=1
         self.tau_d=1
 
@@ -51,13 +54,17 @@ class Wrapper(gym.Wrapper):
         obs, extrinsic_reward, terminated, truncated, info = self.env.step(action)
         # redefine obs
         touch_setup=self.env.touch
+        # dictionary that has keys id of the body part and values array of the sensor outputs.
         sensor_outputs=touch_setup.sensor_outputs
 
+        # dictionary that assigns each body part name the id of that body part.
         body_dict={}
         for body_name in self.body_names:
             body_dict.update({body_name:self.env.model.body(body_name).id})
 
-
+        # Array of sensor observations. Value is True if that body part is touched and else False.
+        # We check if a body part is touched by checking if any sensor of that body part is active
+        # by a threshold.
         obs_touch = np.zeros(len(self.body_names))
         for idx, body_part in enumerate(self.body_names):
             obs_touch[idx]=np.any(sensor_outputs[body_dict[body_part]]) 
@@ -66,8 +73,8 @@ class Wrapper(gym.Wrapper):
         
         prev_habituation=obs['habituation']
         new_habituation=np.zeros(np.shape(prev_habituation))
-        new_habituation[obs_touch==1]=prev_habituation[obs_touch==1]-self.hab(prev_habituation[obs_touch==1]) #habituation where there is touch
-        new_habituation[obs_touch==0]=prev_habituation[obs_touch==0]-self.dehab(prev_habituation[obs_touch==0])  #dehabituation where there is no touch
+        new_habituation[obs_touch==1]=self.hab(prev_habituation[obs_touch==1]) #habituation where there is touch
+        new_habituation[obs_touch==0]=self.dehab(prev_habituation[obs_touch==0])  #dehabituation where there is no touch
         obs['habituation']=new_habituation
              
         #compute reward from redefined observation
