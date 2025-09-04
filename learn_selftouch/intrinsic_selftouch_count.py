@@ -44,14 +44,14 @@ class Wrapper(gym.Wrapper):
 
     def compute_intrinsic_reward(self, obs):
         # Use metabolic cost as a penalty, clipped at 0.1
-        metabolic_cost = self.env.actuation_model.cost()
-        metabolic_cost = np.clip(metabolic_cost, 0, 0.1)
+        #metabolic_cost = self.env.actuation_model.cost()
+        #metabolic_cost = np.clip(metabolic_cost, 0, 0.1)
 
         # Use 'obs['touch']' as mask to filter out body parts that are being touched. 
         mask = obs['touch'].astype(bool)
 
          # The reward is then the sum of habituations over touched body parts minus penalty
-        return np.sum(self.habituation[mask]) #- metabolic_cost
+        return np.sum(self.habituation[mask]) # - metabolic_cost
 
     def step(self, action):
         obs, extrinsic_reward, terminated, truncated, info = self.env.step(action)
@@ -146,8 +146,39 @@ def main():
 
     env.close()
 
-def test_habituation():
+def test_hab():
     # testing habituation
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--config', default='examples/config_selftouch.yml', type=str,
+                        help='The configuration file to set up environment variables')
+    parser.add_argument('--train_for', default=10000, type=int,
+                        help='Total timesteps of training')
+    args = parser.parse_args()
+
+    with open(args.config) as f:
+            config = yaml.safe_load(f)
+
+    env = bb_utils.make_env(config)
+    wrapped_env = Wrapper(env)
+    wrapped_env.reset()
+
+    x=np.arange(0,10)
+    target=np.exp(-x/wrapped_env.tau_h)
+    wrapped_env.habituation=np.ones(len(wrapped_env.body_names))
+
+    for n in range(0,10):
+        new_hab=wrapped_env.hab(wrapped_env.habituation)
+        assert np.all(np.abs(target[n]-wrapped_env.habituation)<10**(-6))
+        wrapped_env.habituation=new_hab
+
+def test_dehab():
+    # testing dehabituation
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--config', default='examples/config_selftouch.yml', type=str,
+                        help='The configuration file to set up environment variables')
+    parser.add_argument('--train_for', default=10000, type=int,
+                        help='Total timesteps of training')
+    args = parser.parse_args()
 
     with open(args.config) as f:
             config = yaml.safe_load(f)
@@ -157,14 +188,34 @@ def test_habituation():
     wrapped_env.reset()
 
     x=np.arange(10)
-    target=np.exp(-x/wrapped_env.tau_h)
-    wrapped_env.habituation=np.ones(len(wrapped_env.body_names))
-    #for n in range(10):
-         #assert target[n
-    #assert y_new
+    target=1-np.exp(-x/wrapped_env.tau_d)
+    wrapped_env.habituation=np.zeros(len(wrapped_env.body_names))
 
+    for n in range(10):
+        new_hab=wrapped_env.dehab(wrapped_env.habituation)
+        assert np.all(np.abs(target[n]-wrapped_env.habituation)<10**(-6))
+        wrapped_env.habituation=new_hab
+
+def test_compute_intrinsic_reward():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--config', default='examples/config_selftouch.yml', type=str,
+                        help='The configuration file to set up environment variables')
+    parser.add_argument('--train_for', default=10000, type=int,
+                        help='Total timesteps of training')
+    args = parser.parse_args()
+
+    with open(args.config) as f:
+            config = yaml.safe_load(f)
+
+    env = bb_utils.make_env(config)
+    wrapped_env = Wrapper(env)
+    wrapped_env.reset()
+    wrapped_env.habituation=np.random.uniform(0,1,len(wrapped_env.body_names))
+    obs_touch=np.zeros(len(wrapped_env.body_names))
+    obs_touch[0:6]=1
+    obs={'touch':obs_touch}
+    assert (wrapped_env.compute_intrinsic_reward(obs)-np.sum(wrapped_env.habituation[obs_touch.astype(bool)]))<10**(-6)
 
 if __name__ == '__main__':
-    #analysis()
     main()
 
