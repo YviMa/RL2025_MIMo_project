@@ -28,10 +28,11 @@ class Wrapper(gym.Wrapper):
         # redefine obs space
         old_dict=self.env.observation_space.spaces
         new_dict=old_dict.copy()
+        new_dict['touch']=gym.spaces.Box(-np.inf, np.inf, shape=old_dict['touch'].shape/3, dtype=np.float32)
+        new_dict['habituation']=new_dict['touch']
         #adding a new box with adjusted size
         #size is equal to the number of body parts 
-        new_dict['touch']=gym.spaces.Box(-np.inf, np.inf, shape=(len(self.env.touch.sensor_outputs),), dtype=np.float32)
-        new_dict.update({'habituation':gym.spaces.Box(-np.inf, np.inf, shape=(len(self.env.touch.sensor_outputs),), dtype=np.float32)})
+        # new_dict['touch']=gym.spaces.Box(-np.inf, np.inf, shape=(len(self.env.touch.sensor_outputs),), dtype=np.float32)
         # new_dict.update({'reward':gym.spaces.Box(-np.inf, np.inf, shape=(1,), dtype=np.float32)})   
         self.observation_space = gym.spaces.Dict(new_dict)
 
@@ -69,18 +70,18 @@ class Wrapper(gym.Wrapper):
         # We check if a body part is touched by checking if any sensor of that body part is active
         # by a threshold.
         obs['touch'] = obs['touch'] > 10**(-6)
-        prev_habituation=self.habituation
+        obs['touch'] = obs['touch'].reshape(-1,3)
+        prev_habituation=self.habituation.copy()
+        self.habituation = np.any(obs['touch'], axis=1)
  
-        new_habituation=prev_habituation.copy()
-        new_habituation[obs['touch']==1]=self.hab(prev_habituation[obs['touch']==1]) #habituation where there is touch
+        self.habituation[obs['touch']==1]=self.hab(prev_habituation[obs['touch']==1]) #habituation where there is touch
         #new_habituation[obs_touch==0]=self.dehab(prev_habituation[obs_touch==0])  #dehabituation where there is no touch
         # new_habituation[obs_touch==0]=prev_habituation[obs_touch==0]
-        obs.update({'habituation':new_habituation})
+        obs['habituation'] = self.habituation
              
         #compute reward from redefined observation
         intrinsic_reward = self.compute_intrinsic_reward(obs)
         total_reward = intrinsic_reward + extrinsic_reward # extrinsic reward is always 0  
-        self.habituation=new_habituation
 
         #add reward to state
         # obs.update({'reward':np.array([total_reward],dtype=np.float32)})
