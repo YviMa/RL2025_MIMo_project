@@ -23,8 +23,8 @@ class Wrapper(gym.Wrapper):
     def __init__(self, env):
         super().__init__(env)
         
-        # Array of body part names.
-        self.body_names=self.env.touch_params['scales'].keys()
+        # Array of body part names. see mimoEnv/babybench/selftouch.py
+        self.body_names = np.concatenate([np.array(env_utils.get_geoms_for_body(self.model, body_id)) for body_id in self.mimo_bodies])
         # redefine obs space
         old_dict=self.env.observation_space.spaces
         new_dict=old_dict.copy()
@@ -35,7 +35,6 @@ class Wrapper(gym.Wrapper):
         new_dict.update({'touched_parts_right_hand':gym.spaces.MultiBinary(len(self.body_names))})
         self.observation_space = gym.spaces.Dict(new_dict)
 
-        self.habituation = np.ones(len(self.body_names))
         self.extr_left_touches = set()
         self.extr_right_touches = set()
     
@@ -65,11 +64,12 @@ class Wrapper(gym.Wrapper):
         left_touch_array = np.zeros(len(self.body_names), dtype=int)
         right_touch_array = np.zeros(len(self.body_names), dtype=int)
 
-        for idx, body_part in enumerate(self.body_names):
-            if body_part in self.extr_left_touches:
-                left_touch_array[idx] = 1
-            if body_part in self.extr_right_touches:
-                right_touch_array[idx] = 1
+        #map touched body parts to binary array
+        # -3 because body part ids [3,38]
+        for left_touch in self.extr_left_touches:
+            left_touch_array[left_touch - 3] = 1
+        for right_touch in self.extr_right_touches:
+            right_touch_array[right_touch - 3] = 1
 
         return left_touch_array, right_touch_array
 
