@@ -35,9 +35,10 @@ class Wrapper(gym.Wrapper):
         new_dict.update({'habituation':gym.spaces.Box(-np.inf, np.inf, shape=(len(self.body_names),), dtype=np.float32)})
         self.observation_space = gym.spaces.Dict(new_dict)
         self.habituation = np.ones(len(self.body_names))
+        #reward as part of the state
+        self.reward = 0
         # habituation time constants. reward after touch decays with function -exp(t/tau_h) and
         # recovers with function 1-exp(t/tau_d).
-        
         self.tau_h=1
         self.tau_d=1
 
@@ -85,6 +86,9 @@ class Wrapper(gym.Wrapper):
         intrinsic_reward = self.compute_intrinsic_reward(obs)
         total_reward = intrinsic_reward + extrinsic_reward # extrinsic reward is always 0  
         self.habituation=new_habituation
+
+        obs.update({'reward':total_reward})
+        
         return obs, total_reward, terminated, truncated, info
 
     def reset(self, **kwargs):
