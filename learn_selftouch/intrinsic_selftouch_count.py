@@ -88,14 +88,15 @@ class Wrapper(gym.Wrapper):
         self.habituation=new_habituation
 
         obs.update({'reward':total_reward})
-        
+        self.reward=total_reward
+
         return obs, total_reward, terminated, truncated, info
 
     def reset(self, **kwargs):
         obs, info=self.env.reset(**kwargs)
         obs['touch']=np.zeros(len(self.body_names),dtype=np.float32)
         obs['habituation']=np.ones(len(self.body_names),dtype=np.float32)
-
+        obs['reward']=0.0
         return obs, info
     
     def hab(self,y):
