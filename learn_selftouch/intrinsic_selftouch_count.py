@@ -51,7 +51,8 @@ class Wrapper(gym.Wrapper):
         mask = obs['touch'].astype(bool)
 
          # The reward is then the sum of habituations over touched body parts minus penalty
-        return np.sum(self.habituation[mask]) - metabolic_cost
+        # return np.sum(self.habituation[mask]) - metabolic_cost
+        return np.sum(self.habituation[mask])
 
     def step(self, action):
         obs, extrinsic_reward, terminated, truncated, info = self.env.step(action)
@@ -78,7 +79,7 @@ class Wrapper(gym.Wrapper):
  
         new_habituation=np.zeros(np.shape(prev_habituation))
         new_habituation[obs_touch==1]=self.hab(prev_habituation[obs_touch==1]) #habituation where there is touch
-        new_habituation[obs_touch==0]=self.dehab(prev_habituation[obs_touch==0])  #dehabituation where there is no touch
+        ##  new_habituation[obs_touch==0]=self.dehab(prev_habituation[obs_touch==0])  #dehabituation where there is no touch
         obs.update({'habituation':new_habituation})
              
         #compute reward from redefined observation
@@ -119,7 +120,7 @@ class Wrapper(gym.Wrapper):
 def main():
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', default='examples/config_selftouch.yml', type=str,
+    parser.add_argument('--config', default='learn_selftouch/config_selftouch.yml', type=str,
                         help='The configuration file to set up environment variables')
     parser.add_argument('--train_for', default=10000, type=int,
                         help='Total timesteps of training')
@@ -141,7 +142,7 @@ def main():
 
 def analysis():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', default='examples/config_selftouch.yml', type=str,
+    parser.add_argument('--config', default='learn_selftouch/config_selftouch.yml', type=str,
                         help='The configuration file to set up environment variables')
     parser.add_argument('--train_for', default=10000, type=int,
                         help='Total timesteps of training')

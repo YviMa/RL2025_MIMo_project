@@ -3,7 +3,7 @@
 
 # --- General options --- #
 
-save_dir : examples/results/self_touch
+save_dir : learn_selftouch/results/self_touch
 behavior : self_touch   # options: self_touch, hand_regard
 scene : crib   # options: base, crib, cubes
 max_episode_steps : 1000
