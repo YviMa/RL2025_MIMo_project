@@ -91,7 +91,7 @@ def main():
 
         # Make a plot of the habituation. We have 22 body parts, so
         # we make a 5x5 plot.
-        habituation_names = env.body_names
+        habituation_names = list(env.body_names)
         habituation = np.array(habituation)
         x_vals = np.array(range(len(habituation)))
         x_vals *= 20  # Times step size
