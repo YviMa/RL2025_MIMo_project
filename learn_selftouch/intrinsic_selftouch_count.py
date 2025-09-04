@@ -103,18 +103,20 @@ class Wrapper(gym.Wrapper):
         # performs habituation step
         # habituation e^{-x/tau} => grad -1/tau => ln(y)=-x/tau => -tau*ln(y)=x
         # y= -1/tau*e^(-xt/tau) => ln(-tau*y)
-        x=-self.tau_h*np.log(y)
-
+        x=np.ones(np.shape(y))
+        x[y>10**(-6)]=-self.tau_h*np.log(y[y>10**(-6)])
+        new_hab=np.zeros(np.shape(y))
         # TODO adjust x+1 to the time step that we want to take?
-        new_hab=np.exp(-(x+1)/self.tau_h)
+        new_hab[y>10**(-6)]=np.exp(-(x[y>10**(-6)]+1)/self.tau_h)
+        new_hab[y<=10**(-6)]=0
         return new_hab
     
     def dehab(self,y):
         # performs dehabituation step
         x=np.zeros(np.shape(y))
-        x[y!=1]=-self.tau_d*np.log(1-y) #1-e^{-x/\tau_d}=y => ln(1-y)*(-tau)=x
+        x[y!=1]=-self.tau_d*np.log(1-y[y!=1]) #1-e^{-x/\tau_d}=y => ln(1-y)*(-tau)=x
         new_hab=np.zeros(np.shape(y)) 
-        new_hab[y!=1]=1-np.exp(-(x+1)/self.tau_d)
+        new_hab[y!=1]=1-np.exp(-(x[y!=1]+1)/self.tau_d)
         new_hab[y==1]=1
         return new_hab
 
@@ -144,22 +146,23 @@ def main():
 
     env.close()
 
-def analysis():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--config', default='examples/config_selftouch.yml', type=str,
-                        help='The configuration file to set up environment variables')
-    parser.add_argument('--train_for', default=10000, type=int,
-                        help='Total timesteps of training')
-    args = parser.parse_args()
-    
+def test_habituation():
+    # testing habituation
+
     with open(args.config) as f:
             config = yaml.safe_load(f)
 
     env = bb_utils.make_env(config)
     wrapped_env = Wrapper(env)
-    wrapped_env.reset()   
-    test=wrapped_env.override_observation_space()  
-    print(test)
+    wrapped_env.reset()
+
+    x=np.arange(10)
+    target=np.exp(-x/wrapped_env.tau_h)
+    wrapped_env.habituation=np.ones(len(wrapped_env.body_names))
+    #for n in range(10):
+         #assert target[n
+    #assert y_new
+
 
 if __name__ == '__main__':
     #analysis()
