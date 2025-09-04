@@ -104,8 +104,11 @@ class Wrapper(gym.Wrapper):
     
     def dehab(self,y):
         # performs dehabituation step
-        x=-self.tau_d*np.log(1-y) #1-e^{-x/\tau_d}=y => ln(-y)*(-tau)=x 
-        new_hab=1-np.exp(-(x+1)/self.tau_d)
+        x=np.zeros(np.shape(y))
+        x[y!=1]=-self.tau_d*np.log(1-y) #1-e^{-x/\tau_d}=y => ln(1-y)*(-tau)=x
+        new_hab=np.zeros(np.shape(y)) 
+        new_hab[y!=1]=1-np.exp(-(x+1)/self.tau_d)
+        new_hab[y==1]=1
         return new_hab
 
     
