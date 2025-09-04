@@ -98,10 +98,12 @@ class Wrapper(gym.Wrapper):
         # performs habituation step
         # habituation e^{-x/tau} => grad -1/tau => ln(y)=-x/tau => -tau*ln(y)=x
         # y= -1/tau*e^(-xt/tau) => ln(-tau*y)
-        x=-self.tau_h*np.log(y)
-
+        x=np.ones(np.shape(y))
+        x[y>10**(-6)]=-self.tau_h*np.log(y[y>10**(-6)])
+        new_hab=np.zeros(np.shape(y))
         # TODO adjust x+1 to the time step that we want to take?
-        new_hab=np.exp(-(x+1)/self.tau_h)
+        new_hab[y>10**(-6)]=np.exp(-(x[y>10**(-6)]+1)/self.tau_h)
+        new_hab[y<=10**(-6)]=0
         return new_hab
     
     def dehab(self,y):
