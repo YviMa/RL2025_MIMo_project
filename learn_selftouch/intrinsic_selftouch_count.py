@@ -76,10 +76,10 @@ class Wrapper(gym.Wrapper):
         
         prev_habituation=self.habituation
  
-        new_habituation=np.zeros(np.shape(prev_habituation))
+        new_habituation=prev_habituation.copy()
         new_habituation[obs_touch==1]=self.hab(prev_habituation[obs_touch==1]) #habituation where there is touch
         #new_habituation[obs_touch==0]=self.dehab(prev_habituation[obs_touch==0])  #dehabituation where there is no touch
-        new_habituation[obs_touch==0]=prev_habituation[obs_touch==0]
+        # new_habituation[obs_touch==0]=prev_habituation[obs_touch==0]
         obs.update({'habituation':new_habituation})
              
         #compute reward from redefined observation
@@ -126,7 +126,7 @@ class Wrapper(gym.Wrapper):
 def main():
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', default='examples/config_selftouch.yml', type=str,
+    parser.add_argument('--config', default='learn_selftouch/config_selftouch.yml', type=str,
                         help='The configuration file to set up environment variables')
     parser.add_argument('--train_for', default=10000, type=int,
                         help='Total timesteps of training')
