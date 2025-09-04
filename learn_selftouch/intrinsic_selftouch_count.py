@@ -32,7 +32,7 @@ class Wrapper(gym.Wrapper):
         #size is equal to the number of body parts 
         new_dict['touch']=gym.spaces.Box(-np.inf, np.inf, shape=(len(self.body_names),), dtype=np.float32)
         new_dict.update({'habituation':gym.spaces.Box(-np.inf, np.inf, shape=(len(self.body_names),), dtype=np.float32)})
-        new_dict.update({'reward':gym.spaces.Box(-np.inf, np.inf, shape=(1,), dtype=np.float32)})   
+        # new_dict.update({'reward':gym.spaces.Box(-np.inf, np.inf, shape=(1,), dtype=np.float32)})   
         self.observation_space = gym.spaces.Dict(new_dict)
 
         self.habituation = np.ones(len(self.body_names))
@@ -88,7 +88,7 @@ class Wrapper(gym.Wrapper):
         self.habituation=new_habituation
 
         #add reward to state
-        obs.update({'reward':np.array([total_reward],dtype=np.float32)})
+        # obs.update({'reward':np.array([total_reward],dtype=np.float32)})
 
         return obs, total_reward, terminated, truncated, info
 
@@ -96,7 +96,7 @@ class Wrapper(gym.Wrapper):
         obs, info=self.env.reset(**kwargs)
         obs['touch']=np.zeros(len(self.body_names),dtype=np.float32)
         obs['habituation']=np.ones(len(self.body_names),dtype=np.float32)
-        obs['reward']=np.zeros(1,dtype=np.float32)
+        # obs['reward']=np.zeros(1,dtype=np.float32)
         return obs, info
     
     def hab(self,y):

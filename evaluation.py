@@ -15,6 +15,8 @@ import babybench.eval as bb_eval
 
 from learn_selftouch.intrinsic_selftouch_count import Wrapper
 
+import matplotlib.pyplot as plt
+
 def main():
     
     parser = argparse.ArgumentParser()
@@ -56,10 +58,19 @@ def main():
         obs, _ = env.reset()
         evaluation.reset()
 
+        # Store an array of habituation values and sample it
+        # every 20 timesteps during the episode to make a plot
+        # of the habituation over the episode.
+        habituation = []
+
         for t_idx in range(args.duration):
 
             # Select action
             #action = env.action_space.sample()
+            # Append to habituation array if step is a multiple
+            # of 20.
+            if t_idx % 20 == 0:
+                habituation.append(env.habituation)
 
             action, next_state = model.predict(obs)
 
@@ -77,6 +88,26 @@ def main():
             evaluation.eval_step(info)
             
         evaluation.end(episode=ep_idx)
+
+        # Make a plot of the habituation. We have 22 body parts, so
+        # we make a 5x5 plot.
+        habituation_names = env.body_names
+        habituation = np.array(habituation)
+        x_vals = np.array(range(len(habituation)))
+        x_vals *= 20  # Times step size
+
+        fig, axs = plt.subplots(5, 5, figsize=(10, 8))
+
+        for i in range(len(habituation_names)):
+            x_pos = i % 5
+            y_pos = i // 5
+            axs[x_pos, y_pos].plot(x_vals, habituation[:,i],
+                                   color='green')
+            axs[x_pos, y_pos].set_title(habituation_names[i])
+
+        plt.tight_layout()
+        plt.savefig('habplot.png')
+
 
 if __name__ == '__main__':
     main()
