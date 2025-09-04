@@ -51,7 +51,7 @@ class Wrapper(gym.Wrapper):
         mask = obs['touch'].astype(bool)
 
          # The reward is then the sum of habituations over touched body parts minus penalty
-        return np.sum(self.habituation[mask]) # - metabolic_cost
+        return np.sum(self.habituation[mask])  #- metabolic_cost
 
     def step(self, action):
         obs, extrinsic_reward, terminated, truncated, info = self.env.step(action)
