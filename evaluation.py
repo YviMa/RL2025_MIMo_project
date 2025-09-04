@@ -19,7 +19,7 @@ from learn_selftouch.intrinsic_selftouch_count import Wrapper
 def main():
     
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', default='learn_selftouch/config_selftouch.yml', type=str,
+    parser.add_argument('--config', default='examples/config_selftouch.yml', type=str,
                         help='The configuration file to set up environment variables')
     parser.add_argument('--render', default=True,  type=bool,
                         help='Renders a video for each episode during the evaluation.')
