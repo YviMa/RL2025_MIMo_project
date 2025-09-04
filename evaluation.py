@@ -91,22 +91,22 @@ def main():
 
         # Make a plot of the habituation. We have 22 body parts, so
         # we make a 5x5 plot.
-        habituation_names = list(env.body_names)
-        habituation = np.array(habituation)
-        x_vals = np.array(range(len(habituation)))
-        x_vals *= 20  # Times step size
+        # habituation_names = list(env.body_names)
+        # habituation = np.array(habituation)
+        # x_vals = np.array(range(len(habituation)))
+        # x_vals *= 20  # Times step size
 
-        fig, axs = plt.subplots(5, 5, figsize=(10, 8))
+        # fig, axs = plt.subplots(5, 5, figsize=(10, 8))
 
-        for i in range(len(habituation_names)):
-            x_pos = i % 5
-            y_pos = i // 5
-            axs[x_pos, y_pos].plot(x_vals, habituation[:,i],
-                                   color='green')
-            axs[x_pos, y_pos].set_title(habituation_names[i])
+        # for i in range(len(habituation_names)):
+        #     x_pos = i % 5
+        #     y_pos = i // 5
+        #     axs[x_pos, y_pos].plot(x_vals, habituation[:,i],
+        #                            color='green')
+        #     axs[x_pos, y_pos].set_title(habituation_names[i])
 
-        plt.tight_layout()
-        plt.savefig('habplot.png')
+        # plt.tight_layout()
+        # plt.savefig('habplot.png')
 
 
 if __name__ == '__main__':
