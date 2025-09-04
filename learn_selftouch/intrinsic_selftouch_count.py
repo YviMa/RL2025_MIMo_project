@@ -59,18 +59,33 @@ class Wrapper(gym.Wrapper):
         touch_setup=self.env.touch
         # dictionary that has keys id of the body part and values array of the sensor outputs.
         sensor_outputs=touch_setup.sensor_outputs
+        sensor_positions=touch_setup.sensor_positions
 
         # dictionary that assigns each body part name the id of that body part.
         body_dict={}
         for body_name in self.body_names:
             body_dict.update({body_name:self.env.model.body(body_name).id})
 
+        # second dimension are the vector coordinates
+        # first dimension is the sensors
+             
+
         # Array of sensor observations. Value is True if that body part is touched and else False.
         # We check if a body part is touched by checking if any sensor of that body part is active
         # by a threshold.
         obs_touch = np.zeros(len(self.body_names))
         for idx, body_part in enumerate(self.body_names):
-            obs_touch[idx]=np.any(sensor_outputs[body_dict[body_part]]>10**(-6)) 
+            
+            # This part turns sensors off that touch the ground
+            # ------------------------------------------------------------
+            sensor_outputs_part=sensor_outputs[body_dict[body_part]]
+            sensor_positions_part=sensor_positions[body_dict[body_part]]
+            for n in range(len(sensor_positions_part)):
+                sensor_pos_world=env_utils.body_pos_to_world(self.env.data,sensor_positions_part[n,:],body_dict[body_part])
+                if sensor_pos_world[2]<0.26:
+                    sensor_outputs_part[n,:]=0
+            #-----------------------------------------------------------------
+            obs_touch[idx]=np.any(sensor_outputs_part>10**(-6)) 
 
         obs['touch']=obs_touch
         
@@ -139,7 +154,7 @@ def main():
     wrapped_env = Wrapper(env)
     wrapped_env.reset()
 
-    model = PPO("MultiInputPolicy", wrapped_env, verbose=1,learning_rate=0.005)
+    model = PPO("MultiInputPolicy", wrapped_env, verbose=1)
     model.learn(total_timesteps=args.train_for)
 
     model.save(os.path.join(config["save_dir"], "model"))
@@ -216,6 +231,7 @@ def test_compute_intrinsic_reward():
     obs={'touch':obs_touch}
     assert (wrapped_env.compute_intrinsic_reward(obs)-np.sum(wrapped_env.habituation[obs_touch.astype(bool)]))<10**(-6)
 
+    
 if __name__ == '__main__':
     main()
 

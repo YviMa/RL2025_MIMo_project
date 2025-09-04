@@ -16,7 +16,7 @@ import babybench.eval as bb_eval
 def main():
     
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', default='examples/config_selftouch.yml', type=str,
+    parser.add_argument('--config', default='../examples/config_selftouch.yml', type=str,
                         help='The configuration file to set up environment variables')
     parser.add_argument('--render', default=True,  type=bool,
                         help='Renders a video for each episode during the evaluation.')
@@ -45,7 +45,7 @@ def main():
     model_dir=config['save_dir']
     model=PPO.load(model_dir+'/model.zip')
 
-    for ep_idx in range(9,args.episodes):
+    for ep_idx in range(0,args.episodes):
         print(f'Running evaluation episode {ep_idx+1}/{args.episodes}')
 
         # Reset environment and evaluation

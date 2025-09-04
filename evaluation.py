@@ -12,6 +12,7 @@ from mimoEnv.envs.mimo_env import MIMoEnv
 import mimoEnv.utils as env_utils
 import babybench.utils as bb_utils
 import babybench.eval as bb_eval
+from learn_selftouch.intrinsic_selftouch_count import Wrapper
 
 from learn_selftouch.intrinsic_selftouch_count import Wrapper
 
