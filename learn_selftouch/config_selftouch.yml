@@ -32,7 +32,7 @@ touch_scale : 5.
 touch_function : force_vector_global
 touch_response : spread_linear
 touch_hands : True
-touch_fingers : False
+touch_fingers : True
 touch_arms : True
 touch_feet : True
 touch_legs : True
