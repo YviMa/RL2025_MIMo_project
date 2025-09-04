@@ -30,12 +30,12 @@ class Wrapper(gym.Wrapper):
         new_dict=old_dict.copy()
         #adding a new box with adjusted size
         #size is equal to the number of body parts 
-        new_dict['touch']=gym.spaces.Box(-np.inf, np.inf, shape=(len(self.body_names),), dtype=np.float32)
-        new_dict.update({'habituation':gym.spaces.Box(-np.inf, np.inf, shape=(len(self.body_names),), dtype=np.float32)})
+        new_dict['touch']=gym.spaces.Box(-np.inf, np.inf, shape=(len(self.env.touch.sensor_outputs),), dtype=np.float32)
+        new_dict.update({'habituation':gym.spaces.Box(-np.inf, np.inf, shape=(len(self.env.touch.sensor_outputs),), dtype=np.float32)})
         # new_dict.update({'reward':gym.spaces.Box(-np.inf, np.inf, shape=(1,), dtype=np.float32)})   
         self.observation_space = gym.spaces.Dict(new_dict)
 
-        self.habituation = np.ones(len(self.body_names))
+        self.habituation = np.ones(len(self.env.touch.sensor_outputs))
         # habituation time constants. reward after touch decays with function -exp(t/tau_h) and
         # recovers with function 1-exp(t/tau_d).
         self.tau_h=1
@@ -68,16 +68,11 @@ class Wrapper(gym.Wrapper):
         # Array of sensor observations. Value is True if that body part is touched and else False.
         # We check if a body part is touched by checking if any sensor of that body part is active
         # by a threshold.
-        obs_touch = np.zeros(len(self.body_names))
-        for idx, body_part in enumerate(self.body_names):
-            obs_touch[idx]=np.any(sensor_outputs[body_dict[body_part]]>10**(-6)) 
-
-        obs['touch']=obs_touch
-        
+        obs['touch'] = self.env.touch.sensor_outputs > 10**(-6)
         prev_habituation=self.habituation
  
         new_habituation=prev_habituation.copy()
-        new_habituation[obs_touch==1]=self.hab(prev_habituation[obs_touch==1]) #habituation where there is touch
+        new_habituation[obs['touch']==1]=self.hab(prev_habituation[obs['touch']==1]) #habituation where there is touch
         #new_habituation[obs_touch==0]=self.dehab(prev_habituation[obs_touch==0])  #dehabituation where there is no touch
         # new_habituation[obs_touch==0]=prev_habituation[obs_touch==0]
         obs.update({'habituation':new_habituation})
@@ -94,8 +89,8 @@ class Wrapper(gym.Wrapper):
 
     def reset(self, **kwargs):
         obs, info=self.env.reset(**kwargs)
-        obs['touch']=np.zeros(len(self.body_names),dtype=np.float32)
-        obs['habituation']=np.ones(len(self.body_names),dtype=np.float32)
+        obs['touch']=np.zeros(len(self.habituation),dtype=np.float32)
+        obs['habituation']=np.ones(len(self.habituation),dtype=np.float32)
         # obs['reward']=np.zeros(1,dtype=np.float32)
         return obs, info
     
