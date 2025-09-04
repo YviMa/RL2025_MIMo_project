@@ -139,7 +139,7 @@ def main():
     wrapped_env = Wrapper(env)
     wrapped_env.reset()
 
-    model = PPO("MultiInputPolicy", wrapped_env, verbose=1,learning_rate=0.005)
+    model = PPO("MultiInputPolicy", wrapped_env, verbose=1)
     model.learn(total_timesteps=args.train_for)
 
     model.save(os.path.join(config["save_dir"], "model"))
