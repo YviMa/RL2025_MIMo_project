@@ -50,8 +50,8 @@ act_hands : True
 act_fingers : True
 act_arms : True
 act_feet : False
-act_legs : True
-act_body : True
+act_legs : False
+act_body : False
 act_head : False
 act_eyes : False
 
