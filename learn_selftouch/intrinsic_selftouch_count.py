@@ -68,7 +68,7 @@ class Wrapper(gym.Wrapper):
         # Array of sensor observations. Value is True if that body part is touched and else False.
         # We check if a body part is touched by checking if any sensor of that body part is active
         # by a threshold.
-        obs['touch'] = self.env.touch.sensor_outputs > 10**(-6)
+        obs['touch'] = obs['touch'] > 10**(-6)
         prev_habituation=self.habituation
  
         new_habituation=prev_habituation.copy()
