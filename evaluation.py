@@ -14,10 +14,12 @@ import babybench.utils as bb_utils
 import babybench.eval as bb_eval
 from learn_selftouch.intrinsic_selftouch_count import Wrapper
 
+from learn_selftouch.intrinsic_selftouch_count import Wrapper
+
 def main():
     
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', default='examples/config_selftouch.yml', type=str,
+    parser.add_argument('--config', default='learn_selftouch/config_selftouch.yml', type=str,
                         help='The configuration file to set up environment variables')
     parser.add_argument('--render', default=True,  type=bool,
                         help='Renders a video for each episode during the evaluation.')
@@ -45,9 +47,10 @@ def main():
     # Preview evaluation of training log
     evaluation.eval_logs()
     model_dir=config['save_dir']
-    model=PPO.load(model_dir+'/model.zip')
+    print(f"Model dir: {model_dir}")
+    model=PPO.load(model_dir+'/model')
 
-    for ep_idx in range(9,args.episodes):
+    for ep_idx in range(args.episodes):
         print(f'Running evaluation episode {ep_idx+1}/{args.episodes}')
 
         # Reset environment and evaluation
