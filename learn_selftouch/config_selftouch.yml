@@ -49,8 +49,8 @@ actuation_model : spring_damper  # options: spring_damper, muscle, positional
 act_hands : True
 act_fingers : True
 act_arms : True
-act_feet : False
-act_legs : False
+act_feet : True
+act_legs : True
 act_body : False
 act_head : False
 act_eyes : False
@@ -59,8 +59,8 @@ act_eyes : False
 lock_hands : False
 lock_fingers : False
 lock_arms : False
-lock_feet : True
-lock_legs : True
+lock_feet : False
+lock_legs : False
 lock_body : True
 lock_head : True
 lock_eyes : True
