@@ -65,7 +65,7 @@ def main():
 
             # Store habituation every 20 steps.
             if t_idx % 20 == 0:
-                habituation = env.habituations.copy()
+                habituation = env.habituation.copy()
                 for key in habituation.keys():
                     habituation[key] = np.mean(habituation[key])
 
