@@ -20,7 +20,7 @@ import babybench.utils as bb_utils
 import matplotlib.pyplot as plt
 
 class Wrapper(gym.Wrapper):
-    def __init__(self, env, componentwise=False):
+    def __init__(self, env, componentwise=False, habituation_reset=False):
         super().__init__(env)
         
         # Array of body part names.
