@@ -71,7 +71,7 @@ def evaluation_img(env, up='side2', down='top'):
         img[:240,480:,:] = img_close[::2,::2,:]
     elif up == 'touches_with_hands':
 #         img[:240,480:,:] = view_touches(env, contact_with='hands')
-        img[240:,480:,:] = view_habituation(env)
+        img[:240,480:,:] = view_habituation(env)
     elif up == 'binocular':
         img[:240,480:,:] = view_binocular(env)
     return img.astype(np.uint8)
