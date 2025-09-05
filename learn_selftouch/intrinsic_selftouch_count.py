@@ -96,11 +96,15 @@ class Wrapper(gym.Wrapper):
         if self.componentwise:
             obs['touch']=np.zeros(obs['touch'].shape,dtype=np.float32)
             if self.habituation_reset:
-                obs['habituation']=np.ones(obs['touch'].shape,dtype=np.float32)   
+                obs['habituation']=np.ones(obs['touch'].shape,dtype=np.float32) 
+            else:
+                obs['habituation']=self.habituation  
         else:
             obs['touch']=np.zeros(self.n_sensors,dtype=np.float32)
             if self.habituation_reset:
                 obs['habituation']=np.ones(self.n_sensors,dtype=np.float32)  
+            else:
+                obs['habituation']=self.habituation
         obs['reward']=np.zeros(1,dtype=np.float32)
         return obs, info
     
