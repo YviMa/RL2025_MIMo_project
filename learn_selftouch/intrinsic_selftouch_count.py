@@ -20,17 +20,18 @@ import babybench.utils as bb_utils
 import matplotlib.pyplot as plt
 
 class Wrapper(gym.Wrapper):
-    def __init__(self, env, componentwise=False):
+    def __init__(self, env, componentwise=False, habituation_reset=False):
         super().__init__(env)
         
         # Array of body part names.
-        self.body_names=self.env.touch_params['scales'].keys()
+        self.body_names=np.concatenate([np.array(env_utils.get_geoms_for_body(self.model, body_id)) for body_id in self.mimo_bodies])
         # redefine obs space
         old_dict=self.env.observation_space.spaces
         new_dict=old_dict.copy()
 
         self.n_sensors=int(old_dict['touch'].shape[0]/3)
         self.componentwise=componentwise
+        self.habituation_reset=habituation_reset
         
         if self.componentwise:
             new_dict.update({'habituation':gym.spaces.Box(-np.inf, np.inf, shape=old_dict['touch'].shape, dtype=np.float32)})
@@ -94,10 +95,12 @@ class Wrapper(gym.Wrapper):
 
         if self.componentwise:
             obs['touch']=np.zeros(obs['touch'].shape,dtype=np.float32)
-            obs['habituation']=np.ones(obs['touch'].shape,dtype=np.float32)   
+            if self.habituation_reset:
+                obs['habituation']=np.ones(obs['touch'].shape,dtype=np.float32)   
         else:
             obs['touch']=np.zeros(self.n_sensors,dtype=np.float32)
-            obs['habituation']=np.ones(self.n_sensors,dtype=np.float32)  
+            if self.habituation_reset:
+                obs['habituation']=np.ones(self.n_sensors,dtype=np.float32)  
         obs['reward']=np.zeros(1,dtype=np.float32)
         return obs, info
     
@@ -121,8 +124,7 @@ class Wrapper(gym.Wrapper):
         new_hab[y!=1]=1-np.exp(-(x[y!=1]+1)/self.tau_d)
         new_hab[y==1]=1
         return new_hab
-
-    
+        
 
 
 def main():
