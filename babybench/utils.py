@@ -106,8 +106,12 @@ def view_habituation(env, focus_body='hip', contact_with=None):
             if env.componentwise:
                 habituations = np.any(habituation, axis=1)
 
-            points_contact.append(sensor_points)
-            contact_magnitudes.append(habituations)
+            # Filter out points where habituation bigger than 1-threshold as untouched points (gray)
+            touched_mask = habituations < 1 - 10**(-6)
+
+            points_contact.append(sensor_points[touched_mask])
+            points_no_contact.append(sensor_points[~touched_mask])
+            contact_magnitudes.append(habituations[touched_mask])
 
     points_gray = np.concatenate(points_no_contact)
     points_red = np.concatenate(points_contact)
