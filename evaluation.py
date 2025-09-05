@@ -99,7 +99,7 @@ def main():
         for i in range(5):
             for j in range(5):
                 idx=5*i+j
-                if idx >= len(body_names): return
+                if idx >= len(body_names): break
 
                 body_name = body_names[idx]
                 body_id = env.model.body(body_name).id
