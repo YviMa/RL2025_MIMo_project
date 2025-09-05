@@ -90,7 +90,7 @@ class Wrapper(gym.Wrapper):
                 sensor_outputs = np.any(sensor_outputs, axis=1)
 
             self.habituation[body_id][sensor_outputs]=self.hab(self.habituation[body_id][sensor_outputs]) 
-            self.habituation[body_id][~sensor_outputs]=self.dehab(self.dehabituation[body_id][~sensor_outputs])
+            self.habituation[body_id][~sensor_outputs]=self.dehab(self.habituation[body_id][~sensor_outputs])
 
     def step(self, action):
         obs, extrinsic_reward, terminated, truncated, info = self.env.step(action)
