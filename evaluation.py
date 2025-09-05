@@ -106,8 +106,8 @@ def main():
 
                 ax = axes[i, j]
                 habs = []
-                for i in habituations:
-                    habs.append(i[body_id])
+                for hab in habituations:
+                    habs.append(hab[body_id])
                 ax.plot(timesteps, habs, color='green')
                 ax.set_title(body_name)
 
