@@ -40,6 +40,12 @@ class Wrapper(gym.Wrapper):
         # 3-component vectors and else it is simply a list of
         # habituation values.
         self.habituation=env.touch.get_empty_sensor_dict(size=3 if self.componentwise else 1)
+
+        # We get a (n, 1) shaped array if not self.componentwise. We need to reshape that to actually get a 1d-array.
+        if not self.componentwise:
+            for key in self.habituation.keys():
+                self.habituation[key].reshape(-1)
+
         if self.reward_state:
             new_dict.update({'reward':gym.spaces.Box(-np.inf, np.inf, shape=(1,), dtype=np.float32)})   
         
@@ -117,6 +123,10 @@ class Wrapper(gym.Wrapper):
 
         if self.habituation_reset:
             self.habituation=self.env.touch.get_empty_sensor_dict(size=3 if self.componentwise else 1)
+            # We get a (n, 1) shaped array if not self.componentwise. We need to reshape that to actually get a 1d-array.
+            if not self.componentwise:
+                for key in self.habituation.keys():
+                    self.habituation[key].reshape(-1)
             obs['habituation']=np.ones(obs['touch'].shape,dtype=np.float32)
         else:
             obs['habituation']=self.env.touch.flatten_sensor_dict(self.habituation)
