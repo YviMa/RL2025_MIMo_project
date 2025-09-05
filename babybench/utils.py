@@ -109,8 +109,10 @@ def view_habituation(env, focus_body='hip', contact_with=None):
             # Filter out points where habituation bigger than 1-threshold as untouched points (gray)
             touched_mask = habituations < 1 - 10**(-6)
 
-            points_contact.append(sensor_points[touched_mask])
-            points_no_contact.append(sensor_points[~touched_mask])
+            touch_points = sensor_points[touched_mask]
+            no_touch_points = sensor_points[~touched_mask]
+            points_contact.append(env_utils.body_pos_to_world(env.data, position=touch_points, body_id=body_id))
+            points_no_contact.append(env_utils.body_pos_to_world(env.data, position=no_touch_points, body_id=body_id))
             contact_magnitudes.append(habituations[touched_mask])
 
     points_gray = np.concatenate(points_no_contact)
