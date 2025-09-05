@@ -93,7 +93,7 @@ def main():
 
         # Save plot of habituation values per body-part.
         fig, axes = plt.subplots(nrows=5, ncols=5, figsize=(12, 12))
-        body_names = env.touch_params['scales']
+        body_names = env.touch_params['scales'].keys()
         timesteps = np.array(range(len(habituations))) * 20
 
         for i in range(5):
