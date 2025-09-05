@@ -44,7 +44,7 @@ class Wrapper(gym.Wrapper):
         # We get a (n, 1) shaped array if not self.componentwise. We need to reshape that to actually get a 1d-array.
         if not self.componentwise:
             for key in self.habituation.keys():
-                self.habituation[key].reshape(-1)
+                self.habituation[key]=self.habituation[key].reshape(-1)
 
         if self.reward_state:
             new_dict.update({'reward':gym.spaces.Box(-np.inf, np.inf, shape=(1,), dtype=np.float32)})   
@@ -126,7 +126,7 @@ class Wrapper(gym.Wrapper):
             # We get a (n, 1) shaped array if not self.componentwise. We need to reshape that to actually get a 1d-array.
             if not self.componentwise:
                 for key in self.habituation.keys():
-                    self.habituation[key].reshape(-1)
+                    self.habituation[key]=self.habituation[key].reshape(-1)
             obs['habituation']=np.ones(obs['touch'].shape,dtype=np.float32)
         else:
             obs['habituation']=self.env.touch.flatten_sensor_dict(self.habituation)
