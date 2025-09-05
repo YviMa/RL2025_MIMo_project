@@ -24,7 +24,8 @@ class Wrapper(gym.Wrapper):
         super().__init__(env)
         
         # Array of body part names.
-        self.body_names=np.concatenate([np.array(env_utils.get_geoms_for_body(self.model, body_id)) for body_id in self.mimo_bodies])
+        self.geom_ids=np.concatenate([np.array(env_utils.get_geoms_for_body(self.model, body_id)) for body_id in self.mimo_bodies])
+            
         # redefine obs space
         old_dict=self.env.observation_space.spaces
         new_dict=old_dict.copy()
@@ -96,13 +97,15 @@ class Wrapper(gym.Wrapper):
         if self.componentwise:
             obs['touch']=np.zeros(obs['touch'].shape,dtype=np.float32)
             if self.habituation_reset:
-                obs['habituation']=np.ones(obs['touch'].shape,dtype=np.float32) 
+                obs['habituation']=np.ones(obs['touch'].shape,dtype=np.float32)
+                self.habituation=obs['habituation']
             else:
                 obs['habituation']=self.habituation  
         else:
             obs['touch']=np.zeros(self.n_sensors,dtype=np.float32)
             if self.habituation_reset:
-                obs['habituation']=np.ones(self.n_sensors,dtype=np.float32)  
+                obs['habituation']=np.ones(self.n_sensors,dtype=np.float32) 
+                self.habituation=obs['habituation'] 
             else:
                 obs['habituation']=self.habituation
         obs['reward']=np.zeros(1,dtype=np.float32)
