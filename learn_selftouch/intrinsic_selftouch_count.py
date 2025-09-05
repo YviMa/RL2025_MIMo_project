@@ -33,18 +33,7 @@ class Wrapper(gym.Wrapper):
         self.componentwise=componentwise
         self.habituation_reset=habituation_reset
         self.reward_state=reward_state
-
-        # self.habituation as dictionary of body_ids, just like
-        # in env.touch.sensor_outputs.
-        # If 'self.componentwise', then its values are a list of
-        # 3-component vectors and else it is simply a list of
-        # habituation values.
-        self.habituation=env.touch.get_empty_sensor_dict(size=3 if self.componentwise else 1)
-
-        # We get a (n, 1) shaped array if not self.componentwise. We need to reshape that to actually get a 1d-array.
-        if not self.componentwise:
-            for key in self.habituation.keys():
-                self.habituation[key]=self.habituation[key].reshape(-1)
+        self.init_habituation_dict()
 
         if self.reward_state:
             new_dict.update({'reward':gym.spaces.Box(-np.inf, np.inf, shape=(1,), dtype=np.float32)})   
@@ -60,6 +49,18 @@ class Wrapper(gym.Wrapper):
         # recovers with function 1-exp(t/tau_d).
         self.tau_h=1
         self.tau_d=1
+
+    def init_habituation_dict(self):
+        """ Returns inited habituation dictionary. """
+        self.habituation = {}
+
+        if self.componentwise:
+            for geom_id in self.env.touch.sensor_positions:
+                self.habituation[geom_id] = np.ones((self.env.touch.get_sensor_count(geom_id), 3), dtype=np.float32)
+
+        else:
+            for geom_id in self.env.touch.sensor_positions:
+                self.habituation[geom_id] = np.ones((self.env.touch.get_sensor_count(geom_id),), dtype=np.float32)
 
     def compute_intrinsic_reward(self, obs):
         # Use metabolic cost as a penalty, clipped at 0.1
@@ -122,11 +123,7 @@ class Wrapper(gym.Wrapper):
             obs['touch']=np.zeros(self.n_sensors,dtype=np.float32)
 
         if self.habituation_reset:
-            self.habituation=self.env.touch.get_empty_sensor_dict(size=3 if self.componentwise else 1)
-            # We get a (n, 1) shaped array if not self.componentwise. We need to reshape that to actually get a 1d-array.
-            if not self.componentwise:
-                for key in self.habituation.keys():
-                    self.habituation[key]=self.habituation[key].reshape(-1)
+            self.init_habituation_dict()
             obs['habituation']=np.ones(obs['touch'].shape,dtype=np.float32)
         else:
             obs['habituation']=self.env.touch.flatten_sensor_dict(self.habituation)
