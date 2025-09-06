@@ -110,6 +110,8 @@ def main():
                         help='The configuration file to set up environment variables')
     parser.add_argument('--train_for', default=10000, type=int,
                         help='Total timesteps of training')
+    parser.add_argument('--name', default='', type=str,
+                        help='save model and training pkl with this name')
     args = parser.parse_args()
     
     with open(args.config) as f:
@@ -122,79 +124,15 @@ def main():
     model = PPO("MultiInputPolicy", wrapped_env, verbose=1,learning_rate=0.005)
     model.learn(total_timesteps=args.train_for)
 
-    model.save(os.path.join(config["save_dir"], "model"))
+    model.save(os.path.join(config["save_dir"], "model"+args.name))
 
     env.close()
 
-def test_hab():
-    # testing habituation
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--config', default='examples/config_selftouch.yml', type=str,
-                        help='The configuration file to set up environment variables')
-    parser.add_argument('--train_for', default=10000, type=int,
-                        help='Total timesteps of training')
-    args = parser.parse_args()
+    # Falls training.pkl existiert → umbenennen
+    if os.path.exists("learn_selftouch/results/self_touch/logs/training.pkl"):
+        os.rename("learn_selftouch/results/self_touch/logs/training.pkl", "learn_selftouch/results/self_touch/logs/training" + args.name + ".pkl")
+        print("Renamed training.pkl to training" + args.name + ".pkl")
 
-    with open(args.config) as f:
-            config = yaml.safe_load(f)
-
-    env = bb_utils.make_env(config)
-    wrapped_env = Wrapper(env)
-    wrapped_env.reset()
-
-    x=np.arange(0,10)
-    target=np.exp(-x/wrapped_env.tau_h)
-    wrapped_env.habituation=np.ones(len(wrapped_env.body_names))
-
-    for n in range(0,10):
-        new_hab=wrapped_env.hab(wrapped_env.habituation)
-        assert np.all(np.abs(target[n]-wrapped_env.habituation)<10**(-6))
-        wrapped_env.habituation=new_hab
-
-def test_dehab():
-    # testing dehabituation
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--config', default='examples/config_selftouch.yml', type=str,
-                        help='The configuration file to set up environment variables')
-    parser.add_argument('--train_for', default=10000, type=int,
-                        help='Total timesteps of training')
-    args = parser.parse_args()
-
-    with open(args.config) as f:
-            config = yaml.safe_load(f)
-
-    env = bb_utils.make_env(config)
-    wrapped_env = Wrapper(env)
-    wrapped_env.reset()
-
-    x=np.arange(10)
-    target=1-np.exp(-x/wrapped_env.tau_d)
-    wrapped_env.habituation=np.zeros(len(wrapped_env.body_names))
-
-    for n in range(10):
-        new_hab=wrapped_env.dehab(wrapped_env.habituation)
-        assert np.all(np.abs(target[n]-wrapped_env.habituation)<10**(-6))
-        wrapped_env.habituation=new_hab
-
-def test_compute_intrinsic_reward():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--config', default='examples/config_selftouch.yml', type=str,
-                        help='The configuration file to set up environment variables')
-    parser.add_argument('--train_for', default=10000, type=int,
-                        help='Total timesteps of training')
-    args = parser.parse_args()
-
-    with open(args.config) as f:
-            config = yaml.safe_load(f)
-
-    env = bb_utils.make_env(config)
-    wrapped_env = Wrapper(env)
-    wrapped_env.reset()
-    wrapped_env.habituation=np.random.uniform(0,1,len(wrapped_env.body_names))
-    obs_touch=np.zeros(len(wrapped_env.body_names))
-    obs_touch[0:6]=1
-    obs={'touch':obs_touch}
-    assert (wrapped_env.compute_intrinsic_reward(obs)-np.sum(wrapped_env.habituation[obs_touch.astype(bool)]))<10**(-6)
 
 if __name__ == '__main__':
     main()
