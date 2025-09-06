@@ -30,7 +30,7 @@ class Wrapper(gym.Wrapper):
         new_dict=old_dict.copy()
         #adding a new box with adjusted size
         #size is equal to the number of body parts 
-        #new_dict.update({'reward':gym.spaces.Box(-np.inf, np.inf, shape=(1,), dtype=np.float32)})   
+        new_dict.update({'reward':gym.spaces.Box(-np.inf, np.inf, shape=(1,), dtype=np.float32)})   
         new_dict.update({'touched_parts_left_hand':gym.spaces.MultiBinary(len(self.body_names))})
         new_dict.update({'touched_parts_right_hand':gym.spaces.MultiBinary(len(self.body_names))})
         self.observation_space = gym.spaces.Dict(new_dict)
@@ -82,7 +82,7 @@ class Wrapper(gym.Wrapper):
         total_reward = extrinsic_reward 
 
         #add reward to state
-        #obs.update({'reward':np.array([total_reward],dtype=np.float32)})
+        obs.update({'reward':np.array([total_reward],dtype=np.float32)})
 
         #add touched body parts to state as binary arrays
         left_array, right_array = self.get_binary_touch_arrays()
@@ -93,7 +93,7 @@ class Wrapper(gym.Wrapper):
 
     def reset(self, **kwargs):
         obs, info=self.env.reset(**kwargs)
-        #obs['reward']=np.zeros(1,dtype=np.float32)
+        obs['reward']=np.zeros(1,dtype=np.float32)
         obs['touched_parts_left_hand']=np.zeros(len(self.body_names), dtype=int)
         obs['touched_parts_right_hand']=np.zeros(len(self.body_names), dtype=int)
 
