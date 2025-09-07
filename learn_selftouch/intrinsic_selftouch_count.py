@@ -20,7 +20,7 @@ import babybench.utils as bb_utils
 import matplotlib.pyplot as plt
 
 class Wrapper(gym.Wrapper):
-    def __init__(self, env, componentwise=False, habituation_reset=False, reward_state=False):
+    def __init__(self, env, tau_h, tau_d, componentwise=False, habituation_reset=False, reward_state=False):
         super().__init__(env)
         
         # Array of body part names.
@@ -48,8 +48,8 @@ class Wrapper(gym.Wrapper):
             self.observation_space = gym.spaces.Dict(new_dict)
         # habituation time constants. reward after touch decays with function -exp(t/tau_h) and
         # recovers with function 1-exp(t/tau_d).
-        self.tau_h=1
-        self.tau_d=1
+        self.tau_h=tau_h
+        self.tau_d=tau_d 
 
     def init_habituation_dict(self):
         """ Returns inited habituation dictionary. """
@@ -164,19 +164,30 @@ def main():
                         help='The configuration file to set up environment variables')
     parser.add_argument('--train_for', default=10000, type=int,
                         help='Total timesteps of training')
+    parser.add_argument('--tau_h', default=10, type=int,
+                        help='Time constant for habituation')
+    parser.add_argument('--tau_d', default=1200, type=int,
+                        help='Time constant for dehabituation')
+    parser.add_argument('--name', default='', type=str,
+                        help='Name of the run')
     args = parser.parse_args()
     
     with open(args.config) as f:
             config = yaml.safe_load(f)
 
     env = bb_utils.make_env(config)
-    wrapped_env = Wrapper(env)
+    wrapped_env = Wrapper(env, args.tau_h, args.tau_d)
     wrapped_env.reset()
 
     model = PPO("MultiInputPolicy", wrapped_env, verbose=1)
     model.learn(total_timesteps=args.train_for)
 
-    model.save(os.path.join(config["save_dir"], "model"))
+    model.save(os.path.join(config["save_dir"], "model_" + str(args.tau_h) + "_" + str(args.tau_d) + "_" + args.name))
+
+    # Falls training.pkl existiert → umbenennen
+    if os.path.exists("learn_selftouch/results/self_touch/logs/training.pkl"):
+        os.rename("learn_selftouch/results/self_touch/logs/training.pkl", "learn_selftouch/results/self_touch/logs/training_" + str(args.tau_h) + "_" + str(args.tau_d) + "_" + args.name + ".pkl")
+        print("Renamed training.pkl to training_" + str(args.tau_h) + "_" + str(args.tau_d) + "_" + args.name + ".pkl")
 
     env.close()
 
