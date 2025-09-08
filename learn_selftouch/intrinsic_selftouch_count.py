@@ -202,9 +202,10 @@ def main():
     wrapped_env = Wrapper(env, habituation_state=config["habituation_state"], touch_state=config["touch_state"], random_policy=config["random_policy"])
     wrapped_env.reset()
 
-    model = PPO("MultiInputPolicy", wrapped_env, verbose=1)
+    model = PPO("MultiInputPolicy", wrapped_env, verbose=0)
     model.learn(total_timesteps=args.train_for)
 
+    print(f"Finished Training for save_dir {config['save_dir']}")
     model.save(os.path.join(config["save_dir"], "model"))
 
     env.close()
