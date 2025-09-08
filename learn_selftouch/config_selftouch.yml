@@ -11,6 +11,13 @@ frame_skip : 1
 render_size : 480
 save_logs_every: 1000
 
+# --- Ablation Studies --- #
+habituation_state : True
+touch_state : True
+
+# --- Policy --- #
+random_policy : False
+
 # --- Sensory modalities --- #
 
 # Proprioception

@@ -20,8 +20,12 @@ import babybench.utils as bb_utils
 import matplotlib.pyplot as plt
 
 class Wrapper(gym.Wrapper):
-    def __init__(self, env, componentwise=False, habituation_reset=False, reward_state=False):
+    def __init__(self, env, componentwise=False, habituation_reset=False, reward_state=False, habituation_state=True, touch_state=True, random_policy=False):
         super().__init__(env)
+
+        self.habituation_state=habituation_state
+        self.touch_state=touch_state
+        self.random_policy=random_policy
         
         # Array of body part names.
         self.geom_ids=np.concatenate([np.array(env_utils.get_geoms_for_body(self.model, body_id)) for body_id in self.mimo_bodies])
@@ -48,8 +52,8 @@ class Wrapper(gym.Wrapper):
             self.observation_space = gym.spaces.Dict(new_dict)
         # habituation time constants. reward after touch decays with function -exp(t/tau_h) and
         # recovers with function 1-exp(t/tau_d).
-        self.tau_h=1
-        self.tau_d=1
+        self.tau_h=10
+        self.tau_d=12000
 
     def init_habituation_dict(self):
         """ Returns inited habituation dictionary. """
@@ -93,7 +97,15 @@ class Wrapper(gym.Wrapper):
             self.habituation[body_id][~sensor_outputs]=self.dehab(self.habituation[body_id][~sensor_outputs])
 
     def step(self, action):
+        if self.random_policy:
+            action = self.env.action_space.sample()
+
         obs, extrinsic_reward, terminated, truncated, info = self.env.step(action)
+
+        # For performance, remove all observations in random policy.
+        if self.random_policy:
+            return {}, 0, terminated, trunctated, info
+
         self.calculate_habituation()
         obs['habituation']=self.env.touch.flatten_sensor_dict(self.habituation)
 
@@ -114,10 +126,20 @@ class Wrapper(gym.Wrapper):
         if self.reward_state:
             obs.update({'reward':np.array([total_reward],dtype=np.float32)})
 
+        # Ablation studies. Remove habituation state or/and touch state.
+        if not self.habituation_state:
+            del obs['habituation']
+
+        if not self.touch_state:
+            del obs['touch']
+
         return obs, total_reward, terminated, truncated, info
 
     def reset(self, **kwargs):
         obs, info=self.env.reset(**kwargs)
+        
+        if self.random_policy:
+            return {}, info
 
         if self.componentwise:
             obs['touch']=np.zeros(obs['touch'].shape,dtype=np.float32)
@@ -132,6 +154,13 @@ class Wrapper(gym.Wrapper):
 
         if self.reward_state:
             obs['reward']=np.zeros(1,dtype=np.float32)
+
+        # Ablation studies
+        if not self.habituation_state:
+            del obs['habituation']
+
+        if not self.touch_state:
+            del obs['touch']
 
         return obs, info
     
@@ -170,7 +199,7 @@ def main():
             config = yaml.safe_load(f)
 
     env = bb_utils.make_env(config)
-    wrapped_env = Wrapper(env)
+    wrapped_env = Wrapper(env, habituation_state=config["habituation_state"], touch_state=config["touch_state"], random_policy=config["random_policy"])
     wrapped_env.reset()
 
     model = PPO("MultiInputPolicy", wrapped_env, verbose=1)
